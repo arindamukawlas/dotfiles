@@ -120,6 +120,17 @@ fi
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 HOST_IP_ADDRESS=$(/mnt/c/Windows/System32/ipconfig.exe | grep 192.168. | grep -m1 IPv4 | awk '{print $14}' | tr -d '\r')
 
-export NVM_DIR="$HOME/.nvm"
+export CARGO_HOME="$XDG_DATA_HOME"/cargo
+export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
+export DOTNET_CLI_HOME="$XDG_DATA_HOME"/dotnet
+export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME"/npm/npmrc
+export NODE_REPL_HISTORY="$XDG_STATE_HOME"/node_repl_history
+export PYTHON_HISTORY="$XDG_STATE_HOME"/python_history
+export OPAMROOT="$XDG_DATA_HOME/opam"
+export PYTHONSTARTUP="$XDG_CONFIG_HOME"/python/pythonrc
+alias wget=wget --hsts-file="$XDG_DATA_HOME/wget-hsts"
+. "/home/habanero/.local/share/cargo/env"
+
+export NVM_DIR="$XDG_DATA_HOME"/nvm
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
