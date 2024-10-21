@@ -44,6 +44,7 @@ alias fgrep="fgrep --color=auto"
 alias egrep="egrep --color=auto"
 alias la="ls -A"
 alias cd="z"
+alias bat="batcat"
 
 # Options
 setopt HIST_SAVE_NO_DUPS
