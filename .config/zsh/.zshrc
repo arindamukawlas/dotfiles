@@ -19,9 +19,29 @@ SAVEHIST=5000
 # Man pages
 MANPAGER="nvim +Man!"
 
+# WSL-only
+if [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
+	HOST_IP_ADDRESS=$(/mnt/c/Windows/System32/ipconfig.exe | grep 192.168. | grep -m1 IPv4 | awk '{print $14}' | tr -d '\r')
+fi
+
+export CARGO_HOME="$XDG_DATA_HOME"/cargo
+export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
+export DOTNET_CLI_HOME="$XDG_DATA_HOME"/dotnet
+export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME"/npm/npmrc
+export NODE_REPL_HISTORY="$XDG_STATE_HOME"/node_repl_history
+export PYTHON_HISTORY="$XDG_STATE_HOME"/python_history
+export OPAMROOT="$XDG_DATA_HOME/opam"
+export PYTHONSTARTUP="$XDG_CONFIG_HOME"/python/pythonrc
+export NVM_DIR="$XDG_DATA_HOME"/nvm
+
 # Aliases
 alias wget=wget --hsts-file="$XDG_DATA_HOME/wget/history"
 alias ls="ls --color=auto"
+alias dir="dir --color=auto"
+alias vdir="vdir --color=auto"
+alias grep="grep --color=auto"
+alias fgrep="fgrep --color=auto"
+alias egrep="egrep --color=auto"
 alias la="ls -A"
 
 # Options
@@ -126,13 +146,6 @@ autoload -Uz add-zsh-hook
 function reset_broken_terminal () { printf "%b" "\e[0m\e(B\e)0\017\e[?5l\e7\e[0;0r\e8" }
 add-zsh-hook -Uz precmd reset_broken_terminal
 
-# Setup zoxide completions
-eval "$(zoxide init zsh)"
-
-# Setup FZF
-source <(fzf --zsh)
-export FZF_DEFAULT_OPTS="--height 40% --layout reverse --border --inline-info"
-
 # Setup help
 autoload -Uz run-help
 (( ${+aliases[run-help]} )) && unalias run-help
@@ -162,3 +175,9 @@ function clear-screen-and-scrollback() {
 zle -N clear-screen-and-scrollback
 bindkey "^L" clear-screen-and-scrollback
 
+# Setup zoxide completions
+eval "$(zoxide init zsh)"
+
+# Setup FZF
+source <(fzf --zsh)
+FZF_DEFAULT_OPTS="--height 40% --layout reverse --border --inline-info"
