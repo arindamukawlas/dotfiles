@@ -22,7 +22,9 @@ export MANPAGER="nvim +Man!"
 # WSL-only
 if [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
 	# Get IP address of host
-	export HOST_IP_ADDRESS=$(/mnt/c/Windows/System32/ipconfig.exe | grep 192.168. | grep -m1 IPv4 | awk "{print $14}" | tr -d "\r")
+	export HOST_IP_ADDRESS=$(\
+	  /mnt/c/Windows/System32/ipconfig.exe | \
+	  grep -m1 IPv4 | tr " " "\n" | grep 192.168. | tr -d "\r")
 fi
 
 export CARGO_HOME="$XDG_DATA_HOME"/cargo
@@ -70,7 +72,6 @@ setopt GLOB_COMPLETE
 setopt MENU_COMPLETE    
 setopt COMPLETE_IN_WORD
 setopt ALWAYS_TO_END  
-setopt PATH_DIRS
 setopt AUTO_MENU
 setopt AUTO_LIST
 setopt AUTO_PARAM_SLASH
@@ -78,7 +79,8 @@ setopt EXTENDED_GLOB
 unsetopt FLOW_CONTROL
 unsetopt BEEP
 
-LS_COLORS=${LS_COLORS:-'di=34:ln=35:so=32:pi=33:ex=31:bd=36;01:cd=33;01:su=31;40;07:sg=36;40;07:tw=32;40;07:ow=33;40;07:'}
+LS_COLORS=${LS_COLORS:-'di=34:ln=35:so=32:pi=33:ex=31:bd=36;\
+01:cd=33;01:su=31;40;07:sg=36;40;07:tw=32;40;07:ow=33;40;07:'}
 
 # Plugins
 export ZPLUGINDIR="$XDG_DATA_HOME/zsh/plugins"
@@ -103,7 +105,7 @@ zstyle ':completion:*' completer _extensions _complete _approximate
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/.zcompcache"
 zstyle ':completion:*' complete true
-zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*' menu select
 zstyle ':completion:*:matches' group 'yes'
 zstyle ':completion:*:options' description 'yes'
 zstyle ':completion:*:options' auto-description '%d'
@@ -119,7 +121,8 @@ zstyle ':completion:*' complete-options true
 zstyle ':completion:*:approximate:*' max-errors 1 numeric
 zstyle -e ':completion:*:approximate:*' max-errors 'reply=($((($#PREFIX+$#SUFFIX)/3>7?7:($#PREFIX+$#SUFFIX)/3))numeric)'
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*:*:-command-:*:*' group-order aliases builtins functions commands
+zstyle ':completion:*:*:-command-:*:*' group-order aliases functions commands builtins 
+zstyle ':completion:*:*:-command-:*:*' ignored-patterns '*.dll' '*.mof' '*.nls' '*.msc'
 
 # Prompt 
 RPROMPT=""
@@ -151,8 +154,10 @@ bindkey -M menuselect "j" vi-down-line-or-history
 
 autoload -Uz add-zsh-hook
 
-# Repair terminal if previous program broke it
-function reset_broken_terminal () { printf "%b" "\e[0m\e(B\e)0\017\e[?5l\e7\e[0;0r\e8" }
+# Repair terminal if previous command broke it
+function reset_broken_terminal () {
+  printf "%b" "\e[0m\e(B\e)0\017\e[?5l\e7\e[0;0r\e8"
+}
 add-zsh-hook -Uz precmd reset_broken_terminal
 
 # Setup help
@@ -172,9 +177,9 @@ add-zsh-hook -Uz precmd xterm_title_precmd
 add-zsh-hook -Uz preexec xterm_title_preexec
 
 # Fix exiting with Ctrl-D
-exit_zsh() { exit }
-zle -N exit_zsh
-bindkey "^D" exit_zsh
+exit-zsh() { exit }
+zle -N exit-zsh
+bindkey "^D" exit-zsh
 
 # Fix clearing screen with Ctrl-L
 function clear-screen-and-scrollback() {
