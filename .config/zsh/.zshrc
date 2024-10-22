@@ -48,8 +48,9 @@ path=(
 )
 export PATH
 
-fpath+=$ZDOTDIR/functions
+fpath+=($ZDOTDIR/functions $ZDOTDIR/completions)
 autoload -Uz $ZDOTDIR/functions/**/*
+autoload -Uz $ZDOTDIR/completions/**/*
 
 # Aliases
 alias wget=wget --hsts-file="$XDG_DATA_HOME/wget/history"
@@ -65,31 +66,64 @@ alias bat="batcat"
 
 # Options
 setopt HIST_SAVE_NO_DUPS
+setopt GLOB_COMPLETE     
+setopt MENU_COMPLETE    
+setopt COMPLETE_IN_WORD
+setopt ALWAYS_TO_END  
+setopt PATH_DIRS
+setopt AUTO_MENU
+setopt AUTO_LIST
+setopt AUTO_PARAM_SLASH
+setopt EXTENDED_GLOB
+unsetopt FLOW_CONTROL
+unsetopt BEEP
+
+LS_COLORS=${LS_COLORS:-'di=34:ln=35:so=32:pi=33:ex=31:bd=36;01:cd=33;01:su=31;40;07:sg=36;40;07:tw=32;40;07:ow=33;40;07:'}
 
 # Plugins
 export ZPLUGINDIR="$XDG_DATA_HOME/zsh/plugins"
 repos=(
   romkatv/zsh-defer
-  zsh-users/zsh-completions
   zsh-users/zsh-syntax-highlighting
   zsh-users/zsh-autosuggestions
 )
-plugin-load $repos 
 
 # Load Completion
 zmodload zsh/complist
-autoload -Uz compinit promptinit
-compinit
-promptinit
+autoload -Uz compinit 
+for dump in ~/.zcompdump(N.mh+24); do
+  compinit -d "$XDG_CACHE_HOME/zsh/.zcompdump"
+done
+compinit -C -d "$XDG_CACHE_HOME/zsh/.zcompdump"
 
 # Include hidden files
 _comp_options+=(globdots)
 
-zstyle ":completion:*" menu select
+zstyle ':completion:*' completer _extensions _complete _approximate
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/.zcompcache"
+zstyle ':completion:*' complete true
+zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*:matches' group 'yes'
+zstyle ':completion:*:options' description 'yes'
+zstyle ':completion:*:options' auto-description '%d'
+zstyle ':completion:*:corrections' format ' %F{yellow}-- %d (errors: %e) --%f'
+zstyle ':completion:*:descriptions' format ' %F{blue}-- %D %d --%f'
+zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
+zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
+zstyle ':completion:*' format ' %F{yellow}-- %d --%f'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' complete-options true
+zstyle ':completion:*:approximate:*' max-errors 1 numeric
+zstyle -e ':completion:*:approximate:*' max-errors 'reply=($((($#PREFIX+$#SUFFIX)/3>7?7:($#PREFIX+$#SUFFIX)/3))numeric)'
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*:*:-command-:*:*' group-order aliases builtins functions commands
 
 # Prompt 
-export RPROMPT=""
-export PROMPT="%F{green}%~ %F{blue}>%f "
+RPROMPT=""
+PROMPT="%F{green}%~ %F{blue}>%f "
 
 # Vi Mode
 bindkey -v
@@ -125,7 +159,7 @@ add-zsh-hook -Uz precmd reset_broken_terminal
 autoload -Uz run-help
 (( ${+aliases[run-help]} )) && unalias run-help
 alias help=run-help
-autoload -Uz run-help-git run-help-ip run-help-sudo
+autoload -Uz run-help-git run-help-sudo
 
 # Add title
 function xterm_title_precmd () {
@@ -155,11 +189,13 @@ bindkey "^L" clear-screen-and-scrollback
 eval "$(zoxide init zsh)"
 
 # Setup FZF
-source <(fzf --zsh)
 export FZF_DEFAULT_OPTS="--height 40% --layout reverse --border --inline-info"
+source <(fzf --zsh)
 
 # Setup cargo
 . "/home/habanero/.local/share/cargo/env"
 
 # Setup deno
 . "/home/habanero/.local/share/deno/env"
+
+plugin-load $repos 
