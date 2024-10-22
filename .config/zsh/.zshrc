@@ -12,16 +12,17 @@ export EDITOR="nvim"
 export VISUAL="nvim"
 
 # History
-export HISTFILE=$XDG_DATA_HOME/zsh/history
-export HISTSIZE=5000
-export SAVEHIST=5000
+HISTFILE=$XDG_DATA_HOME/zsh/history
+HISTSIZE=5000
+SAVEHIST=5000
 
 # Man pages
 export MANPAGER="nvim +Man!"
 
 # WSL-only
 if [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
-	export HOST_IP_ADDRESS=$(/mnt/c/Windows/System32/ipconfig.exe | grep 192.168. | grep -m1 IPv4 | awk '{print $14}' | tr -d '\r')
+	# Get IP address of host
+	export HOST_IP_ADDRESS=$(/mnt/c/Windows/System32/ipconfig.exe | grep 192.168. | grep -m1 IPv4 | awk "{print $14}" | tr -d "\r")
 fi
 
 export CARGO_HOME="$XDG_DATA_HOME"/cargo
@@ -33,6 +34,22 @@ export PYTHON_HISTORY="$XDG_STATE_HOME"/python_history
 export OPAMROOT="$XDG_DATA_HOME/opam"
 export PYTHONSTARTUP="$XDG_CONFIG_HOME"/python/pythonrc
 export NVM_DIR="$XDG_DATA_HOME"/nvm
+export DENO_DIR="$XDG_DATA_HOME/deno"
+export DENO_INSTALL_ROOT="$DENO_DIR/bin"
+export DENO_REPL_HISTORY="$DENO_DIR/history"
+
+# Auto remove duplicates
+typeset -U path PATH fpath
+
+path=(
+  /usr/local/bin
+  ~/.local/bin
+  $path
+)
+export PATH
+
+fpath+=$ZDOTDIR/functions
+autoload -Uz $ZDOTDIR/functions/**/*
 
 # Aliases
 alias wget=wget --hsts-file="$XDG_DATA_HOME/wget/history"
@@ -51,43 +68,6 @@ setopt HIST_SAVE_NO_DUPS
 
 # Plugins
 export ZPLUGINDIR="$XDG_DATA_HOME/zsh/plugins"
-function plugin-load {
-  local repo plugdir initfile initfiles=()
-  : ${ZPLUGINDIR:=${$XDG_DATA_HOME}/zsh/plugins}
-  for repo in $@; do
-    plugdir=$ZPLUGINDIR/${repo:t}
-    initfile=$plugdir/${repo:t}.plugin.zsh
-    if [[ ! -d $plugdir ]]; then
-      echo "Cloning $repo..."
-      git clone -q --depth 1 --recursive --shallow-submodules \
-        https://github.com/$repo $plugdir
-    fi
-    if [[ ! -e $initfile ]]; then
-      initfiles=($plugdir/*.{plugin.zsh,zsh-theme,zsh,sh}(N))
-      (( $#initfiles )) || { echo >&2 "No init file '$repo'." && continue }
-      ln -sf $initfiles[1] $initfile
-    fi
-    fpath+=$plugdir
-    (( $+functions[zsh-defer] )) && zsh-defer . $initfile || . $initfile
-  done
-  autoload -U zrecompile
-  local f
-  for f in $ZPLUGINDIR/**/*.zsh{,-theme}(N); do
-    zrecompile -pq "$f"
-  done
-}
-function plugin-update {
-  ZPLUGINDIR=${ZPLUGINDIR:-$HOME/.config/zsh/plugins}
-  for d in $ZPLUGINDIR/*/.git(/); do
-    echo "Updating ${d:h:t}..."
-    command git -C "${d:h}" pull --ff --recurse-submodules --depth 1 --rebase --autostash
-  done
-  autoload -U zrecompile
-  local f
-  for f in $ZPLUGINDIR/**/*.zsh{,-theme}(N); do
-    zrecompile -pq "$f"
-  done
-}
 repos=(
   romkatv/zsh-defer
   zsh-users/zsh-completions
@@ -98,7 +78,7 @@ plugin-load $repos
 
 # Load Completion
 zmodload zsh/complist
-autoload -U compinit promptinit
+autoload -Uz compinit promptinit
 compinit
 promptinit
 
@@ -134,13 +114,6 @@ bindkey -M menuselect "k" vi-up-line-or-history
 bindkey -M menuselect "l" vi-forward-char
 bindkey -M menuselect "j" vi-down-line-or-history
 
-typeset -U path PATH
-path=(
-  /usr/local/bin
-  ~/.local/bin
-  $path
-)
-export PATH
 
 autoload -Uz add-zsh-hook
 
@@ -177,9 +150,16 @@ function clear-screen-and-scrollback() {
 zle -N clear-screen-and-scrollback
 bindkey "^L" clear-screen-and-scrollback
 
+
 # Setup zoxide completions
 eval "$(zoxide init zsh)"
 
 # Setup FZF
 source <(fzf --zsh)
 export FZF_DEFAULT_OPTS="--height 40% --layout reverse --border --inline-info"
+
+# Setup cargo
+. "/home/habanero/.local/share/cargo/env"
+
+# Setup deno
+. "/home/habanero/.local/share/deno/env"

@@ -131,7 +131,6 @@ export PYTHON_HISTORY="$XDG_STATE_HOME"/python_history
 export OPAMROOT="$XDG_DATA_HOME/opam"
 export PYTHONSTARTUP="$XDG_CONFIG_HOME"/python/pythonrc
 alias wget=wget --hsts-file="$XDG_DATA_HOME/wget-hsts"
-. "/home/habanero/.local/share/cargo/env"
 
 export NVM_DIR="$XDG_DATA_HOME"/nvm
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -139,3 +138,5 @@ export NVM_DIR="$XDG_DATA_HOME"/nvm
 export PATH="/home/habanero/.local/bin:$PATH" 
 eval "$(zoxide init bash)"
 eval "$(fzf --bash)"
+. "/home/habanero/.local/share/cargo/env"
+. "/home/habanero/.local/share/deno/env"
